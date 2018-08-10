@@ -35,9 +35,13 @@
                             </ul>
                         </div>
                     </li>
+                    <li><a href="/manage/blogs"><i class="uk-icon-list"></i> 日志列表</a></li>
                 {% else %}
                     <li><a href="/signin"><i class="uk-icon-sign-in"></i> 登陆</a></li>
                     <li><a href="/register"><i class="uk-icon-edit"></i> 注册</a></li>
+                {% endif %}
+                {% if __user__.admin %}
+                    <li><a href="/manage/blogs/create"><i class="uk-icon-create"></i> 发表日志</a></li>
                 {% endif %}
                 </ul>
             </div>
