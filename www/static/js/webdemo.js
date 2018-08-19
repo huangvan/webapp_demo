@@ -359,9 +359,12 @@ if (typeof(Vue)!=='undefined') {
     });
     Vue.component('pagination', {
         template: '<ul class="uk-pagination">' +
+                '<li class="uk-text-center">共 <span v-text="page_count"></span> 页</li>' +
                 '<li v-if="! has_previous" class="uk-disabled"><span><i class="uk-icon-angle-double-left"></i></span></li>' +
                 '<li v-if="has_previous"><a v-attr="onclick:\'gotoPage(\' + (page_index-1) + \')\'" href="#0"><i class="uk-icon-angle-double-left"></i></a></li>' +
+                '<li v-if="page_index>1" class="uk-text-center"><a v-repeat="page: page_index-1" v-text="page+1" v-attr="onclick:\'gotoPage(\' + (page+1) + \')\'" href="#0"></a></li>' + 
                 '<li class="uk-active"><span v-text="page_index"></span></li>' +
+                '<li v-if="page_index<page_count" class="uk-text-center"><a v-repeat="page: page_count-page_index" v-text="page+page_index+1" v-attr="onclick:\'gotoPage(\' + (page+page_index+1) + \')\'" href="#0"></a></li>' + 
                 '<li v-if="! has_next" class="uk-disabled"><span><i class="uk-icon-angle-double-right"></i></span></li>' +
                 '<li v-if="has_next"><a v-attr="onclick:\'gotoPage(\' + (page_index+1) + \')\'" href="#0"><i class="uk-icon-angle-double-right"></i></a></li>' +
             '</ul>'

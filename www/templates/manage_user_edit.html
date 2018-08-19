@@ -1,0 +1,135 @@
+{% extends '__base__.html' %}
+
+{% block title %}编辑用户{% endblock %}
+
+{% block beforehead %}
+
+<script>
+
+function validateEmail(email) {
+    var re = /^[a-z0-9\.\-\_]+\@[a-z0-9\-\_]+(\.[a-z0-9\-\_]+){1,4}$/;
+    return re.test(email.toLowerCase());
+}
+
+var
+    ID = '{{ id }}',
+    action = '{{ action }}';
+
+
+
+function initVM(user) {
+    var vm = new Vue({
+        el: '#vm',
+        data: user,
+        methods: {
+            submit: function (event) {
+                event.preventDefault();
+                var $form = $('#vm');
+                if (! validateEmail(user.email.trim().toLowerCase())) {
+                    return $form.showFormError('请输入正确的Email地址');
+                }
+                var email = user.email.trim().toLowerCase();
+                if  (user.password1 == null) {
+                     var passwd=user.passwd;
+                     var oldpasswd=true;
+                }
+                else if (user.password1.length < 6) {
+                    return $form.showFormError('口令长度至少为6个字符');
+                }
+                else if (user.password1 !== user.password2) {
+                    return $form.showFormError('两次输入的口令不一致');
+                }
+                else {
+                    var passwd=CryptoJS.SHA1(email + ':' + user.password1).toString();
+                    var oldpasswd=false;
+                }
+                $form.postJSON(action, {
+                    name: user.name,
+                    email: email,
+                    passwd: passwd,
+                    admin: user.admin,
+                    oldpasswd: oldpasswd
+                    }, function (err, r) {
+                        if (err) {
+                            return $form.showFormError(err);
+                        }
+                       return location.assign('/user/' + ID);
+                   });
+                                  
+                console.log(this.$data);
+            }
+        }
+    });
+    $('#vm').show();
+}
+
+
+$(function () {
+    if (ID) {
+        getJSON('/api/users/' + ID, function (err, user) {
+            if (err) {
+                return fatal(err);
+            }
+            $('#loading').hide();
+            initVM(user);
+        });
+    }
+    else {
+        $('#loading').hide();
+        initVM({
+            name: '',
+            email: '',
+            password1: '',
+            password2: '',
+			  admin: ''
+        });
+    }
+});
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+    <div class="uk-width-2-3">
+        <h1>用户信息编辑</h1>
+        <form id="vm" v-on="submit: submit" class="uk-form uk-form-stacked">
+            <div class="uk-alert uk-alert-danger uk-hidden"></div>
+            <div class="uk-form-row">
+                <label class="uk-form-label">电子邮件:</label>
+                <div class="uk-form-controls">
+                    <input v-model="email" type="text" maxlength="50" placeholder="your-name@example.com" disabled class="uk-width-1-1" >
+                </div>
+            </div>
+            <div class="uk-form-row">
+                <label class="uk-form-label">名字:</label>
+                <div class="uk-form-controls">
+                    <input v-model="name" type="text" maxlength="50" placeholder="名字" class="uk-width-1-1">
+                </div>
+            </div>
+            <div class="uk-form-row">
+                <label class="uk-form-label">输入口令:</label>
+                <div class="uk-form-controls">
+                    <input v-model="password1" type="password" maxlength="50" placeholder="输入口令" class="uk-width-1-1">
+                </div>
+            </div>
+            <div class="uk-form-row">
+                <label class="uk-form-label">重复口令:</label>
+                <div class="uk-form-controls">
+                    <input v-model="password2" type="password" maxlength="50" placeholder="重复口令" class="uk-width-1-1">
+                </div>
+            </div>
+            {% if __user__.admin %}
+    			  <div class="uk-form-row">
+                    <label class="uk-form-label">是否管理员:<input v-model="admin" type="checkbox" placeholder="0" ></label>
+                </div>
+            {% endif %}
+            <div class="uk-form-row">
+                <button type="submit" class="uk-button uk-button-primary"><i class="uk-icon-save"></i> 保存</button>
+               <!-- <a href="/manage/users" class="uk-button"><i class="uk-icon-times"></i> 取消</a> --->
+                <a href="#" onclick="javascript:history.back(-1);" class="uk-button"><i class="uk-icon-times"></i> 取消</a>
+            </div>
+        </form>
+    </div>
+
+{% endblock %}

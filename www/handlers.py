@@ -84,18 +84,41 @@ def check_admin(request):
 
 #浏览首页：GET /
 @get('/')
-def index(request):
-    summary = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
-    blogs = [
-        Blog(id='1', name='Test Blog', summary=summary, created_at=time.time()-120),
-        Blog(id='2', name='Something New', summary=summary, created_at=time.time()-3600),
-        Blog(id='3', name='Learn Swift', summary=summary, created_at=time.time()-7200)
-    ]
+async def index(*, page='1'):
+    page_index = get_page_index(page)
+    num = await Blog.findNumber('count(id)')
+   
+    page = Page(num)
+    if num == 0:
+        blogs = []
+    else:
+        blogs = await Blog.findAll(orderBy='created_at desc', limit=(page.offset, page.limit))
+
     return {
         '__template__': 'blogs.html',
+        'page': page,
         'blogs': blogs,
-         '__user__': request.__user__
+        'page_index': page_index
     }
+
+#浏览首页：GET /home
+@get('/home')
+async def home(*, page='1'):
+    page_index = get_page_index(page)
+    num = await Blog.findNumber('count(id)')
+   
+    page = Page(num)
+    if num == 0:
+        blogs = []
+    else:
+        blogs = await Blog.findAll(orderBy='created_at desc', limit=(page.offset, page.limit))
+    return {
+        '__template__': 'blogs.html',
+        'page': page,
+        'blogs': blogs,
+        'page_index': page_index
+    }
+
 
 #注册页：GET /register  
 @get('/register')
@@ -182,6 +205,24 @@ def manage_users(*, page='1'):
         'page_index': get_page_index(page)
     }
     
+#修改用户信息：GET /manage/users/edit
+@get('/manage/users/edit')
+def manage_edit_user(*, id):
+    return {
+        '__template__': 'manage_user_edit.html',
+        'id': id,
+        'action': '/api/users/%s' % id
+    }
+
+
+#获取user详情页：GET /user/user_id
+@get('/user/{id}')
+def get_user(id):
+    return {
+        '__template__': 'user.html',
+        'id': id
+    }
+
 
 #以下为API处理逻辑 
     
@@ -224,6 +265,42 @@ async def api_get_users(*, page='1'):
         u.passwd = '******'
     return dict(page=p, users=users)
 
+#删除用户：POST /api/blogs/:blog_id/delete
+@post('/api/users/{id}/delete')
+async def api_delete_user(request, *, id):
+    check_admin(request)
+    user = await User.find(id)
+    await user.remove()
+    return dict(id=id)
+
+#获取用户信息：GET /api/user_id
+@get('/api/users/{id}')
+async def api_get_user(*, id):
+    user = await User.find(id)
+    return user
+
+#修改用户信息：POST /api/users/user_id
+@post('/api/users/{id}')
+async def api_update_user(id, request, *, name, email, passwd, admin, oldpasswd):
+    check_admin(request)
+    user = await User.find(id)
+    if not name or not name.strip():
+        raise APIValueError('name', 'name cannot be empty.')
+    if not email or not email.strip():
+        raise APIValueError('email', 'email cannot be empty.')
+    if not passwd or not passwd.strip():
+        raise APIValueError('passwd', 'passwd cannot be empty.')
+    user.name = name.strip()
+    user.email = email.strip()
+    if oldpasswd:
+        user.passwd=passwd
+    else:
+        sha1_passwd = '%s:%s' % (user.id, passwd)
+        user.passwd = hashlib.sha1(sha1_passwd.encode('utf-8')).hexdigest()
+    user.admin = int(admin)
+    await user.update()
+    return user
+
 #构造cookie，验证用户登录
 @post('/api/authenticate')
 async def authenticate(*, email, passwd):
@@ -241,6 +318,8 @@ async def authenticate(*, email, passwd):
     sha1.update(b':')
     sha1.update(passwd.encode('utf-8'))
     if user.passwd != sha1.hexdigest():
+        logging.info(user.passwd)
+        logging.info(sha1.hexdigest())
         raise APIValueError('passwd', 'Invalid email or password.')
     # authenticate ok, set cookie:
     r = web.Response()
@@ -249,6 +328,17 @@ async def authenticate(*, email, passwd):
     r.content_type = 'application/json'
     r.body = json.dumps(user, ensure_ascii=False).encode('utf-8')
     return r
+
+#获取首页blog：GET /api/home
+@get('/api/home')
+async def api_home(*, page='1'):
+    page_index = get_page_index(page)
+    num = await Blog.findNumber('count(id)')
+    page = Page(num, page_index)
+    if num == 0:
+        return dict(page=page, blogs=())
+    blogs = await Blog.findAll(orderBy='created_at desc', limit=(page.offset, page.limit))
+    return dict(page=page, blogs=blogs)
 
 
 #获取blog：GET /api/blogs

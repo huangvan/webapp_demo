@@ -5,34 +5,98 @@
 {% block beforehead %}
 
 <script>
+
+function initVM(data) {
+    var vm = new Vue({
+        el: '#vm',
+        data: {
+            blogs: data.blogs,
+            page: data.page
+        }
+    });
+    $('#vm').show();
+    console.log(data.page);
+    console.log(data.blogs);
+}
+
+$(function() {
+    getJSON('/api/home', {
+        page: {{ page_index }}
+    }, function (err, results) {
+        if (err) {
+            return fatal(err);
+        }
+        $('#loading').hide();
+        initVM(results);
+    });
+});
+
 </script>
 
 {% endblock %}
 
 {% block content %}
-
-    <div class="uk-width-medium-3-4">
-    {% for blog in blogs %}
-        <article class="uk-article">
-            <h2><a href="/blog/{{ blog.id }}">{{ blog.name }}</a></h2>
-            <p class="uk-article-meta">发表于{{ blog.created_at|datetime }}</p>
-            <p>{{ blog.summary }}</p>
-            <p><a href="/blog/{{ blog.id }}">继续阅读 <i class="uk-icon-angle-double-right"></i></a></p>
-        </article>
-        <hr class="uk-article-divider">
-    {% endfor %}
+    <div class="uk-grid">
+        <div class="uk-width-medium-3-4">
+            <article class="uk-article">
+                <h3><a>今日头条</a></h3>
+                <h2><a href= "/blog/00153391923396752d8e75a8ba14a9cb1d06175696a18a4000">宇宙正在消失 我们对此却无能为力</a></h2>
+                <p>近一个世纪前，科学家们就首次提出了宇宙在不断膨胀的理论，离地球越远的星系...</p>
+            </article>
+        </div>
+        <div class="uk-width-medium-1-4">
+            <a class="uk-thumbnail" href=""><img src="static/img/yz.jpg" alt=""></a>
+        </div>
     </div>
+    <div id="vm" class="uk-width-medium-3-4">
+             <h3><a>最新博客</a></h3>
+            <article v-repeat="blog: blogs"  class="uk-article">
+                <h1><a v-attr="href: '/blog/'+blog.id" v-text="blog.name"></a></h1>
+                <p class="uk-article-meta" >由 {{ __user__.name }} 发表于 <span v-text="blog.created_at.toDateTime()"></span></p>
+                <p v-text="blog.summary"></p>
+                <p><a v-attr="href: '/blog/'+blog.id">继续阅读 <i class="uk-icon-angle-double-right"></i></a></p>
+            </article>
+            <hr class="uk-article-divider">
 
+    <div v-component="pagination" v-with="page"></div>
+    </div>
     <div class="uk-width-medium-1-4">
         <div class="uk-panel uk-panel-header">
-            <h3 class="uk-panel-title">友情链接</h3>
+            <h2 class="uk-panel-title">热门推荐</h2>
             <ul class="uk-list uk-list-line">
-                <li><i class="uk-icon-thumbs-o-up"></i> <a target="_blank" href="http://www.liaoxuefeng.com/category/0013738748415562fee26e070fa4664ad926c8e30146c67000">编程</a></li>
-                <li><i class="uk-icon-thumbs-o-up"></i> <a target="_blank" href="http://www.liaoxuefeng.com/category/0013738748248885ddf38d8cd1b4803aa74bcda32f853fd000">读书</a></li>
-                <li><i class="uk-icon-thumbs-o-up"></i> <a target="_blank" href="http://www.liaoxuefeng.com/wiki/001374738125095c955c1e6d8bb493182103fac9270762a000">Python教程</a></li>
-                <li><i class="uk-icon-thumbs-o-up"></i> <a target="_blank" href="http://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000">Git教程</a></li>
+                <li><i class="uk-icon-thumbs-o-up"></i> <a target="_blank" href="/blog/001533918602120a85280b8c54149008a7fcf9c8e4b07dd000">详解字符串的快速匹配算法：KMP</a></li>
+                <li><i class="uk-icon-thumbs-o-up"></i> <a target="_blank" href="/blog/001533918992830030e4c1515d041c5a5b8db1b9c514151000">python网络爬虫系列教程</a></li>
+                <li><i class="uk-icon-thumbs-o-up"></i> <a target="_blank" href="/blog/001534509443527985a1b393e2040b9a1851f2a3db62992000">谷歌研发开源协议 助听器有望原生支持Android系统</a></li>
+                <li><i class="uk-icon-thumbs-o-up"></i> <a target="_blank" href="/blog/0015339191885146a1fb8c858624a08a8250cfff0bc958a000">icon图标下载</a></li>
             </ul>
         </div>
+        <p>        </p>
+        <hr class="uk-article-divider">
+        <p>        </p>
+        <p>        </p>
+    </div>
+        <div class="uk-width-medium-1-4">
+        <div class="uk-panel uk-panel-header">
+            <h2 class="uk-panel-title">推荐博主</h2>
+            <ul class="uk-list uk-list-line">
+                <li><i class="uk-icon-thumbs-o-up"></i> <a target="_blank" href="/user/00153372056551722ccd5b098ce423a9785c7d51d9de537000">huang</a></li>
+                <li><i class="uk-icon-thumbs-o-up"></i> <a target="_blank" href="/user/0015338140698797ca116d377374ecab10f5eacbeafeb3b000">wang</a></li>
+                <li><i class="uk-icon-thumbs-o-up"></i> <a target="_blank" href="/user/001534495619256c03afceb681349d8852d1522fc179403000">ming</a></li>
+                <li><i class="uk-icon-thumbs-o-up"></i> <a target="_blank" href="/user/00153443838341949b44a6253354967859d84219a0b5102000">li</a></li>
+            </ul>
+        </div>
+        <p>        </p>
+        <hr class="uk-article-divider">
+        <p>        </p>
+        <p>        </p>
+    </div>
+    <div class="uk-width-medium-1-4">
+        <h2 class="uk-panel-title">最火图片</h2>
+        <ul class="uk-list uk-list-line">
+            <a class="uk-thumbnail" href=""><img src="static/img/timg.jpg" alt=""></a>
+            <a class="uk-thumbnail" href=""><img src="static/img/mm.jpg" alt=""></a>
+            <a class="uk-thumbnail" href=""><img src="static/img/js.jpg" alt=""></a>
+        </ul>
     </div>
 
 {% endblock %}

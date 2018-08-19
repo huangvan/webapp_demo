@@ -78,7 +78,8 @@ $(function() {
             <tbody>
                 <tr v-repeat="comment: comments" >
                     <td>
-                        <span v-text="comment.user_name"></span>
+                       <!--- <span v-text="comment.user_name"></span>--->
+                        <a target="_blank" v-attr="href: '/user/'+comment.user_id" v-text="comment.user_name"></a>
                     </td>
                     <td>
                         <span v-text="comment.content"></span>
