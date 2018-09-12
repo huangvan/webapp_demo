@@ -36,10 +36,10 @@ $(function() {
 {% endblock %}
 
 {% block content %}
-    <div class="uk-grid">
+    <div class="uk-grid ">
         <div class="uk-width-medium-3-4">
             <article class="uk-article">
-                <h3><a>今日头条</a></h3>
+                <h3><em>今日头条</em></h3>
                 <h2><a href= "/blog/00153391923396752d8e75a8ba14a9cb1d06175696a18a4000">宇宙正在消失 我们对此却无能为力</a></h2>
                 <p>近一个世纪前，科学家们就首次提出了宇宙在不断膨胀的理论，离地球越远的星系...</p>
             </article>
@@ -49,7 +49,7 @@ $(function() {
         </div>
     </div>
     <div id="vm" class="uk-width-medium-3-4">
-             <h3><a>最新博客</a></h3>
+             <h3><em>最新博客</em></h3>
             <article v-repeat="blog: blogs"  class="uk-article">
                 <h1><a v-attr="href: '/blog/'+blog.id" v-text="blog.name"></a></h1>
                 <p class="uk-article-meta" >由 {{ __user__.name }} 发表于 <span v-text="blog.created_at.toDateTime()"></span></p>
